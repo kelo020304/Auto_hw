@@ -114,7 +114,9 @@
     </configurations>
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="510d8c97-cddb-4fef-b69c-bcfac7377cfd" name="Changes" comment="" />
+    <list default="true" id="510d8c97-cddb-4fef-b69c-bcfac7377cfd" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/hw5-trajecotry_smoothing&amp;control" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -752,7 +754,7 @@
       <workItem from="1729746529421" duration="162000" />
       <workItem from="1729746702317" duration="1148000" />
       <workItem from="1729747854235" duration="34011000" />
-      <workItem from="1732004938732" duration="1040000" />
+      <workItem from="1732004938732" duration="1368000" />
     </task>
     <servers />
   </component>
