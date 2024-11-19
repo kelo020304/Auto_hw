@@ -144,12 +144,12 @@ vector<double> StanlyController(const vector<double>& robot_state, const vector<
     double e_y = (dy * cos(yaw) - dx * sin(yaw)) > 0 ? sqrt(dx * dx + dy * dy) : -sqrt(dx * dx + dy * dy);
     double path_yaw;
     if (min_ind < refer_path.size() - 1) {
-        // 使用当前目标点和下一个目标点计算路径的航向角
+
         double next_dx = refer_path[min_ind + 1][0] - refer_path[min_ind][0];
         double next_dy = refer_path[min_ind + 1][1] - refer_path[min_ind][1];
         path_yaw = atan2(next_dy, next_dx);
     } else {
-        // 如果当前是最后一个点，则使用前一个点来计算路径的航向角
+
         double prev_dx = refer_path[min_ind][0] - refer_path[min_ind - 1][0];
         double prev_dy = refer_path[min_ind][1] - refer_path[min_ind - 1][1];
         path_yaw = atan2(prev_dy, prev_dx);
@@ -157,72 +157,71 @@ vector<double> StanlyController(const vector<double>& robot_state, const vector<
     double yaw_error = path_yaw - yaw;
     while (yaw_error > PI) yaw_error -= 2.0 * PI;
     while (yaw_error < -PI) yaw_error += 2.0 * PI;
-    double theta_e = yaw_error;  // 航向误差
-    double theta_d = atan2(k * e_y, 2);  // 横向误差引起的转向角
+    double theta_e = yaw_error;
+    double theta_d = atan2(k * e_y, 2);
     double delta_f = theta_e + theta_d;
     output.emplace_back(2);
     output.emplace_back(delta_f);
     return output;
 }
 
-// Your code
-#include "KinematicModel.h"
-#include <vector>
-#include <Eigen/Dense>
-#include <cmath>
-
-using namespace std;
-using namespace Eigen;
-
-// LQR控制器实现
-vector<double> LQRController(KinematicModel& ugv, const vector<vector<double>>& refer_path) {
+vector<double> LQRController(const vector<double>& robot_state, const vector<vector<double>>& refer_path, KinematicModel& ugv) {
     vector<double> output;
 
 
-    int min_ind = calTargetIndex(ugv.getState(), refer_path);
-    double ref_x = refer_path[min_ind][0];
-    double ref_y = refer_path[min_ind][1];
-    double ref_yaw = atan2(refer_path[min_ind + 1][1] - ref_y, refer_path[min_ind + 1][0] - ref_x);
-    double ref_delta = 0.0;
+    int min_ind = calTargetIndex(robot_state, refer_path);
+    double dx, dy, ddx, ddy;
+    if (min_ind ==0) {
+        dx = refer_path[min_ind+1][0] - refer_path[min_ind][0];
+        dy = refer_path[min_ind+1][1] - refer_path[min_ind][1];
+        ddx = refer_path[min_ind + 2][0] + refer_path[min_ind][0]-2 * refer_path[min_ind+1][0];
+        ddy = refer_path[min_ind + 2][1] + refer_path[min_ind][1] -2* refer_path[min_ind+1][1];
+    } else if ( min_ind == refer_path.size() - 1) {
+        dx = refer_path[min_ind][0] - refer_path[min_ind-1][0];
+        dy = refer_path[min_ind][1] - refer_path[min_ind-1][1];
+        ddx = refer_path[min_ind][0] + refer_path[min_ind-2][0] -2* refer_path[min_ind-1][0];
+        ddy = refer_path[min_ind][1] + refer_path[min_ind-2][1] -2* refer_path[min_ind-1][1];
+    } else {
+        dx = refer_path[min_ind +1][0] - refer_path[min_ind][0];
+        dy = refer_path[min_ind+ 1][1] - refer_path[min_ind][1];
+        ddx = refer_path[min_ind +1][0] + refer_path[min_ind -1][0] -2*refer_path[min_ind][0];
+        ddy = refer_path[min_ind +1][1] + refer_path[min_ind -1][1] -2*refer_path[min_ind][1];
+    }
+    double c = atan2( dy, dx);
+    double k = ( ddy * dx - ddx * dy) /  pow((dx *dx + dy*dy), 3.0/2);
+    double ref_delta = atan2(ugv.L * c,1);
+    double ref_yaw = k;
+
+    // double ref_delta = 0.0;
     vector<MatrixXd> state_space = ugv.stateSpace(ref_delta, ref_yaw);
     MatrixXd A = state_space[0];
     MatrixXd B = state_space[1];
+
     MatrixXd Q(3, 3);
-    Q << 1.0, 0.0, 0.0,
-         0.0, 1.0, 0.0,
-         0.0, 0.0, 1.0;
+    Q << 3, 0.0, 0.0,
+         0.0, 3, 0.0,
+         0.0, 0.0, 3.0;
 
     MatrixXd R(2, 2);
-    R << 1.0, 0.0,
-         0.0, 10.0;
+    R << 2.0, 0.0,
+        0.0, 2.0;
 
-    // Step 4: 计算 Riccati 方程解 P
     MatrixXd P = CalRicatti(A, B, Q, R);
 
-    // Step 5: 计算增益矩阵 K
     MatrixXd K = (R + B.transpose() * P * B).inverse() * B.transpose() * P * A;
-
-    // Step 6: 计算状态误差
-    vector<double> state = ugv.getState();
-    VectorXd x(3);
-    x << state[0], state[1], state[2];  // 车辆当前状态 (x, y, yaw)
-    VectorXd x_ref(3);
-    x_ref << ref_x, ref_y, ref_yaw;  // 参考点状态 (x, y, yaw)
-    VectorXd x_error = x - x_ref;
+    double x_e = robot_state[0] -refer_path[min_ind][0];
+    double y_e = robot_state[1] - refer_path[min_ind][1];
+    double error_yaw = ugv.psi - ref_yaw;
+    while (error_yaw > PI) error_yaw -= 2.0 * PI;
+    while (error_yaw < -PI) error_yaw += 2.0 * PI;
+    VectorXd x_error(3);
+    x_error << x_e, y_e, error_yaw;
 
     VectorXd u = -K * x_error;
+    // VectorXd u = -K * x;
 
-    double delta = u[0];  // 前轮转向角
-
-
-    // double max_steering_angle = M_PI / 6;  // 30度
-    // if (delta > max_steering_angle) delta = max_steering_angle;
-    // if (delta < -max_steering_angle) delta = -max_steering_angle;
-
-    // Step 9: 更新车辆状态
-    ugv.updateState(2, delta);
-
-
+    double delta = u[1];
+    delta += ref_delta;
     output.emplace_back(2);
     output.emplace_back(delta);
 
@@ -254,8 +253,8 @@ int main(){
         vector<double> control_output;
         // control_output = PIDController(robot_state, refer_path, ugv);
         // control_output = PurePursuitController(robot_state, refer_path, ugv);
-        control_output = StanlyController(robot_state, refer_path, ugv);
-        // control_output = LQRController(robot_state, refer_path, ugv);
+        // control_output = StanlyController(robot_state, refer_path, ugv);
+        control_output = LQRController(robot_state, refer_path, ugv);
 
         // update state
         ugv.updateState(control_output[0],control_output[1]);

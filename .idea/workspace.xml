@@ -115,7 +115,7 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="510d8c97-cddb-4fef-b69c-bcfac7377cfd" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/hw5-trajecotry_smoothing&amp;control" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -172,6 +172,11 @@
 }]]></component>
   <component name="RunManager" selected="CMake Application.demo_node">
     <configuration name="_catkin_empty_exported_target" type="CMakeRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" EMULATE_TERMINAL="false" PASS_PARENT_ENVS_2="true" PROJECT_NAME="Project" TARGET_NAME="_catkin_empty_exported_target" CONFIG_NAME="Debug">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration default="true" type="CMakeRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" EMULATE_TERMINAL="false" PASS_PARENT_ENVS_2="true">
       <method v="2">
         <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
       </method>
@@ -754,7 +759,7 @@
       <workItem from="1729746529421" duration="162000" />
       <workItem from="1729746702317" duration="1148000" />
       <workItem from="1729747854235" duration="34011000" />
-      <workItem from="1732004938732" duration="1368000" />
+      <workItem from="1732004938732" duration="2291000" />
     </task>
     <servers />
   </component>
